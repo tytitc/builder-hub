@@ -5,21 +5,21 @@ import { encodePacked, keccak256, toHex } from "viem";
  * Following the Base Builder Code specification (ERC-8021 or legacy).
  * For simplicity in this demo, we'll use a consistent hash-based code.
  */
-export function generateBuilderCode(appId: string): string {
-  // Simple deterministic 8-character hex code from appId
-  const hash = keccak256(toHex(appId));
-  return hash.slice(2, 10); // 8 hex chars
-}
+import { stringToHex } from "viem";
 
 /**
- * Appends a builder code to transaction data.
- * @param data The original transaction data hex
- * @param builderCode The 8-character hex builder code
+ * Your Base Builder Code: bc_kyt7kkbw
+ * The suffix is 'kyt7kkbw'
+ * In hex, 'kyt7kkbw' becomes '6b7974376b6b6277'
  */
-export function appendBuilderCode(data: string, builderCode: string): string {
-  // Ensure data starts with 0x
-  const cleanData = data.startsWith("0x") ? data : "0x" + data;
-  return cleanData + builderCode;
-}
+export const APP_BUILDER_CODE_SUFFIX = "kyt7kkbw";
+export const APP_BUILDER_CODE_HEX = stringToHex(APP_BUILDER_CODE_SUFFIX).slice(2); // removes '0x'
 
-export const APP_BUILDER_CODE = generateBuilderCode("base-builder-hub");
+/**
+ * Appends the hex-encoded builder code to the end of transaction data.
+ * This is the standard way to attribute activity on Base.
+ */
+export function appendBuilderCode(data: string): string {
+  const cleanData = data.startsWith("0x") ? data : "0x" + data;
+  return cleanData + APP_BUILDER_CODE_HEX;
+}
