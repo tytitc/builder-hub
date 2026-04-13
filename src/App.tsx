@@ -223,12 +223,11 @@ export default function App() {
             </TabsList>
           </div>
 
-          <AnimatePresence mode="wait">
-            <TabsContent value="dashboard" className="mt-0 outline-none">
+          <div className="mt-8">
+            {activeTab === "dashboard" && (
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 className="grid grid-cols-1 md:grid-cols-3 gap-6"
               >
                 {/* Daily Check-in Card */}
@@ -364,13 +363,12 @@ export default function App() {
                   </CardContent>
                 </Card>
               </motion.div>
-            </TabsContent>
+            )}
 
-            <TabsContent value="codes" className="mt-0 outline-none">
+            {activeTab === "codes" && (
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 className="max-w-3xl mx-auto space-y-6"
               >
                 <Card className="bg-white/5 border-white/10">
@@ -423,13 +421,12 @@ await sendTransaction({ data: dataWithCode, ... });`}
                   </CardContent>
                 </Card>
               </motion.div>
-            </TabsContent>
+            )}
 
-            <TabsContent value="assistant" className="mt-0 outline-none">
+            {activeTab === "assistant" && (
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
               >
                 <Card className="bg-white/5 border-white/10 h-[500px] md:h-[600px] flex flex-col">
                   <CardHeader className="border-b border-white/5 p-4">
@@ -477,13 +474,12 @@ await sendTransaction({ data: dataWithCode, ... });`}
                   </CardContent>
                 </Card>
               </motion.div>
-            </TabsContent>
+            )}
 
-            <TabsContent value="quests" className="mt-0 outline-none">
+            {activeTab === "quests" && (
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
               >
                 {[
@@ -511,8 +507,8 @@ await sendTransaction({ data: dataWithCode, ... });`}
                   </Card>
                 ))}
               </motion.div>
-            </TabsContent>
-          </AnimatePresence>
+            )}
+          </div>
         </Tabs>
       </main>
 
