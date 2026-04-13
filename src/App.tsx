@@ -152,7 +152,7 @@ export default function App() {
       // In a real app with builder codes, we'd use a custom hook or viem client 
       // to append the builder code to the transaction data.
       // For this demo, we'll call the standard writeContract.
-      writeContract({
+      (writeContract as any)({
         address: CONTRACT_ADDRESS,
         abi: CONTRACT_ABI,
         functionName: 'checkIn',
@@ -160,6 +160,24 @@ export default function App() {
     } catch (error) {
       console.error("Check-in error:", error);
     }
+  };
+
+  const handleSendMessage = async () => {
+    if (!chatInput.trim()) return;
+    
+    const userMsg = { role: "user", content: chatInput };
+    setChatHistory(prev => [...prev, userMsg]);
+    setChatInput("");
+    setIsTyping(true);
+
+    const response = await getBuilderAdvice(chatInput);
+    setChatHistory(prev => [...prev, { role: "assistant", content: response }]);
+    setIsTyping(false);
+  };
+
+  const handleGenerateCode = () => {
+    if (!customAppId.trim()) return;
+    setGeneratedCode(generateBuilderCode(customAppId));
   };
 
   return (
