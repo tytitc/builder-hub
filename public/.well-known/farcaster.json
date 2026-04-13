@@ -1,0 +1,17 @@
+{
+  "accountAssociation": {
+    "header": "PASTE_YOUR_HEADER_HERE",
+    "payload": "PASTE_YOUR_PAYLOAD_HERE",
+    "signature": "PASTE_YOUR_SIGNATURE_HERE"
+  },
+  "frame": {
+    "version": "1",
+    "name": "Build Hubl",
+    "iconUrl": "https://build-hubl-app.vercel.app/icon.png",
+    "homeUrl": "https://build-hubl-app.vercel.app",
+    "imageUrl": "https://build-hubl-app.vercel.app/og-image.png",
+    "buttonTitle": "Launch Build Hubl",
+    "splashImageUrl": "https://build-hubl-app.vercel.app/splash.png",
+    "splashBackgroundColor": "#0A0A0B"
+  }
+}
