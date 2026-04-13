@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ConnectKitButton } from "connectkit";
-import { useAccount } from "wagmi";
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   LayoutDashboard, 
@@ -20,7 +20,89 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { getBuilderAdvice } from "@/services/geminiService";
-import { APP_BUILDER_CODE, generateBuilderCode } from "@/lib/builder-codes";
+import { APP_BUILDER_CODE, generateBuilderCode, appendBuilderCode } from "@/lib/builder-codes";
+
+const CONTRACT_ADDRESS = "0x5bbF5eCb2cbE75128A30226a2D431e73c2BE054b";
+const CONTRACT_ABI = [
+  {
+    "inputs": [],
+    "name": "checkIn",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "getProfile",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "total",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "last",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "streak",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "points",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "status",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "getLevel",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_newStatus",
+        "type": "string"
+      }
+    ],
+    "name": "updateStatus",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+] as const;
 
 export default function App() {
   const { isConnected, address } = useAccount();
@@ -33,22 +115,51 @@ export default function App() {
   const [customAppId, setCustomAppId] = useState("");
   const [generatedCode, setGeneratedCode] = useState("");
 
-  const handleSendMessage = async () => {
-    if (!chatInput.trim()) return;
-    
-    const userMsg = { role: "user", content: chatInput };
-    setChatHistory(prev => [...prev, userMsg]);
-    setChatInput("");
-    setIsTyping(true);
+  // Contract Read Hooks
+  const { data: profileData, refetch: refetchProfile } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI,
+    functionName: 'getProfile',
+    args: [address as `0x${string}`],
+    query: { enabled: !!address }
+  });
 
-    const response = await getBuilderAdvice(chatInput);
-    setChatHistory(prev => [...prev, { role: "assistant", content: response }]);
-    setIsTyping(false);
-  };
+  const { data: levelData } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI,
+    functionName: 'getLevel',
+    args: [address as `0x${string}`],
+    query: { enabled: !!address }
+  });
 
-  const handleGenerateCode = () => {
-    if (!customAppId.trim()) return;
-    setGeneratedCode(generateBuilderCode(customAppId));
+  // Contract Write Hooks
+  const { writeContract, data: hash } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
+
+  useEffect(() => {
+    if (isConfirmed) {
+      refetchProfile();
+    }
+  }, [isConfirmed, refetchProfile]);
+
+  const handleCheckIn = async () => {
+    if (!isConnected) {
+      alert("Please connect your wallet first!");
+      return;
+    }
+
+    try {
+      // In a real app with builder codes, we'd use a custom hook or viem client 
+      // to append the builder code to the transaction data.
+      // For this demo, we'll call the standard writeContract.
+      writeContract({
+        address: CONTRACT_ADDRESS,
+        abi: CONTRACT_ABI,
+        functionName: 'checkIn',
+      });
+    } catch (error) {
+      console.error("Check-in error:", error);
+    }
   };
 
   return (
@@ -118,43 +229,47 @@ export default function App() {
                           </CardDescription>
                         </div>
                         <Badge className="bg-blue-500 text-white border-none px-3 py-1">
-                          +50 XP
+                          {profileData ? `+${10 + (Number(profileData[2]) * 2)} XP` : "+10 XP"}
                         </Badge>
                       </div>
                     </CardHeader>
                     <CardContent className="relative flex flex-col sm:flex-row items-center justify-between gap-6 pb-8">
                       <div className="flex gap-2">
-                        {[1, 2, 3, 4, 5, 6, 7].map((day) => (
-                          <div 
-                            key={day} 
-                            className={`w-10 h-12 rounded-lg border flex flex-col items-center justify-center transition-all ${
-                              day === 1 
-                                ? "bg-blue-600 border-blue-400 shadow-[0_0_15px_rgba(37,99,235,0.4)]" 
-                                : "bg-white/5 border-white/10 opacity-50"
-                            }`}
-                          >
-                            <span className="text-[10px] font-mono uppercase opacity-60">Day</span>
-                            <span className="font-bold">{day}</span>
-                          </div>
-                        ))}
+                        {[1, 2, 3, 4, 5, 6, 7].map((day) => {
+                          const streak = profileData ? Number(profileData[2]) : 0;
+                          const isCompleted = day <= streak;
+                          const isCurrent = day === streak + 1;
+                          
+                          return (
+                            <div 
+                              key={day} 
+                              className={`w-10 h-12 rounded-lg border flex flex-col items-center justify-center transition-all ${
+                                isCompleted 
+                                  ? "bg-blue-600 border-blue-400 shadow-[0_0_15px_rgba(37,99,235,0.4)]" 
+                                  : isCurrent
+                                    ? "bg-blue-600/20 border-blue-500/50 animate-pulse"
+                                    : "bg-white/5 border-white/10 opacity-50"
+                              }`}
+                            >
+                              <span className="text-[10px] font-mono uppercase opacity-60">Day</span>
+                              <span className="font-bold">{day}</span>
+                            </div>
+                          );
+                        })}
                       </div>
                       <div className="flex flex-col items-end gap-2 w-full sm:w-auto">
                         <Button 
                           size="lg" 
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-8 h-14 rounded-2xl shadow-lg shadow-blue-600/20 w-full sm:w-auto font-bold text-lg"
-                          onClick={() => {
-                            if (!isConnected) {
-                              alert("Please connect your wallet first!");
-                              return;
-                            }
-                            // In a real app, this would trigger a contract call
-                            alert("Check-in transaction initiated on Base! (Simulation)");
-                          }}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-8 h-14 rounded-2xl shadow-lg shadow-blue-600/20 w-full sm:w-auto font-bold text-lg disabled:opacity-50"
+                          onClick={handleCheckIn}
+                          disabled={isConfirming || (profileData && (Date.now() / 1000) < Number(profileData[1]) + 86400)}
                         >
-                          Check-in Now
+                          {isConfirming ? "Confirming..." : "Check-in Now"}
                         </Button>
                         <p className="text-[10px] text-slate-500 font-mono text-center w-full">
-                          ESTIMATED GAS: &lt;0.00001 ETH
+                          {profileData && (Date.now() / 1000) < Number(profileData[1]) + 86400 
+                            ? "NEXT CHECK-IN IN ~24H" 
+                            : "ESTIMATED GAS: <0.00001 ETH"}
                         </p>
                       </div>
                     </CardContent>
@@ -196,12 +311,19 @@ export default function App() {
                       </div>
                       <div>
                         <h3 className="font-bold">{isConnected ? `${address?.slice(0, 6)}...${address?.slice(-4)}` : "Not Connected"}</h3>
-                        <p className="text-xs text-slate-500">Level 1 Novice Builder</p>
+                        <p className="text-xs text-slate-500">
+                          {levelData ? `Level ${levelData} ${Number(levelData) === 4 ? 'Master' : Number(levelData) === 3 ? 'Expert' : Number(levelData) === 2 ? 'Advanced' : 'Novice'} Builder` : "Novice Builder"}
+                        </p>
                       </div>
                       <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden">
-                        <div className="bg-blue-600 h-full w-[15%]" />
+                        <div 
+                          className="bg-blue-600 h-full transition-all duration-500" 
+                          style={{ width: profileData ? `${Math.min((Number(profileData[3]) / 1000) * 100, 100)}%` : "0%" }} 
+                        />
                       </div>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-tighter">150 / 1000 XP to Level 2</p>
+                      <p className="text-[10px] text-slate-500 uppercase tracking-tighter">
+                        {profileData ? `${profileData[3]} / 1000 XP to Next Level` : "0 / 1000 XP"}
+                      </p>
                     </CardContent>
                   </Card>
 
