@@ -204,23 +204,26 @@ export default function App() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 relative">
+      <main className="container mx-auto px-4 py-8 pb-32 md:pb-8 relative">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <div className="flex justify-start md:justify-center w-full overflow-x-auto no-scrollbar pb-2">
-            <TabsList className="bg-white/5 border border-white/10 p-1 h-12 w-max md:w-auto">
-              <TabsTrigger value="dashboard" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white gap-2 px-4 md:px-6 text-xs md:text-sm">
-                <LayoutDashboard className="w-4 h-4" /> <span className="whitespace-nowrap">Dashboard</span>
-              </TabsTrigger>
-              <TabsTrigger value="codes" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white gap-2 px-4 md:px-6 text-xs md:text-sm">
-                <Code2 className="w-4 h-4" /> <span className="whitespace-nowrap">Builder Codes</span>
-              </TabsTrigger>
-              <TabsTrigger value="assistant" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white gap-2 px-4 md:px-6 text-xs md:text-sm">
-                <MessageSquare className="w-4 h-4" /> <span className="whitespace-nowrap">AI Assistant</span>
-              </TabsTrigger>
-              <TabsTrigger value="quests" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white gap-2 px-4 md:px-6 text-xs md:text-sm">
-                <Trophy className="w-4 h-4" /> <span className="whitespace-nowrap">Quests</span>
-              </TabsTrigger>
-            </TabsList>
+          {/* Navigation - Fixed Bottom on Mobile, Top on Desktop */}
+          <div className="fixed bottom-6 left-0 right-0 z-50 px-4 md:relative md:bottom-0 md:px-0 flex justify-center">
+            <div className="bg-[#0A0A0B]/80 backdrop-blur-xl border border-white/10 p-1.5 rounded-2xl shadow-2xl md:bg-white/5 w-full max-w-md md:max-w-none md:w-auto overflow-x-auto no-scrollbar">
+              <TabsList className="bg-transparent border-none p-0 h-12 w-full flex justify-between md:justify-center md:gap-2">
+                <TabsTrigger value="dashboard" className="flex-1 md:flex-none data-[state=active]:bg-blue-600 data-[state=active]:text-white gap-2 px-3 md:px-6 text-[10px] md:text-sm flex-col md:flex-row h-10 md:h-9">
+                  <LayoutDashboard className="w-4 h-4" /> <span className="whitespace-nowrap">Dashboard</span>
+                </TabsTrigger>
+                <TabsTrigger value="codes" className="flex-1 md:flex-none data-[state=active]:bg-blue-600 data-[state=active]:text-white gap-2 px-3 md:px-6 text-[10px] md:text-sm flex-col md:flex-row h-10 md:h-9">
+                  <Code2 className="w-4 h-4" /> <span className="whitespace-nowrap">Codes</span>
+                </TabsTrigger>
+                <TabsTrigger value="assistant" className="flex-1 md:flex-none data-[state=active]:bg-blue-600 data-[state=active]:text-white gap-2 px-3 md:px-6 text-[10px] md:text-sm flex-col md:flex-row h-10 md:h-9">
+                  <MessageSquare className="w-4 h-4" /> <span className="whitespace-nowrap">AI</span>
+                </TabsTrigger>
+                <TabsTrigger value="quests" className="flex-1 md:flex-none data-[state=active]:bg-blue-600 data-[state=active]:text-white gap-2 px-3 md:px-6 text-[10px] md:text-sm flex-col md:flex-row h-10 md:h-9">
+                  <Trophy className="w-4 h-4" /> <span className="whitespace-nowrap">Quests</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
           </div>
 
           <div className="mt-8">
